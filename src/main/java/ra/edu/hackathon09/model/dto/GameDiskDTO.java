@@ -18,7 +18,6 @@ public class GameDiskDTO {
     @Min(value = 1, message = "Quantity phải lớn hơn 0")
     private int quantity;
 
-    // 🔥 FIX Ở ĐÂY: đổi sang coverImage cho khớp Spring binding
     private MultipartFile coverImage;
 
     public GameDiskDTO() {
