@@ -2,36 +2,33 @@ package ra.edu.hackathon09.model.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import org.springframework.web.multipart.MultipartFile;
 
 public class GameDiskDTO {
+    private Long id;
 
-    private long id;
-    @NotBlank(message = "Chi tu 3-100 ky tu")
+    @NotBlank(message = "Title không được để trống")
+    @Size(min = 3, max = 100, message = "Title từ 3 đến 100 ký tự")
     private String title;
-    @NotNull(message = "Khong duoc de trong")
+
+    @NotBlank(message = "Genre không được để trống")
     private String genre;
-    @Min(0)
+
+    @Min(value = 1, message = "Quantity phải lớn hơn 0")
     private int quantity;
-    
-    private String coverlmage;
+
+    // 🔥 FIX Ở ĐÂY: đổi sang coverImage cho khớp Spring binding
+    private MultipartFile coverImage;
 
     public GameDiskDTO() {
     }
 
-    public GameDiskDTO(int quantity, long id, String title, String genre, String coverlmage) {
-        this.quantity = quantity;
-        this.id = id;
-        this.title = title;
-        this.genre = genre;
-        this.coverlmage = coverlmage;
-    }
-
-    public long getId() {
+    public Long getId() {
         return this.id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -59,11 +56,11 @@ public class GameDiskDTO {
         this.quantity = quantity;
     }
 
-    public String getCoverlmage() {
-        return this.coverlmage;
+    public MultipartFile getCoverImage() {
+        return this.coverImage;
     }
 
-    public void setCoverlmage(String coverlmage) {
-        this.coverlmage = coverlmage;
+    public void setCoverImage(MultipartFile coverImage) {
+        this.coverImage = coverImage;
     }
 }

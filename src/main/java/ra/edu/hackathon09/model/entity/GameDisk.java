@@ -5,19 +5,21 @@ public class GameDisk {
     private String title;
     private String genre;
     private int quantity;
+    private String image;
 
     public GameDisk() {
     }
 
-    public GameDisk(int quantity, long id, String title, String genre) {
-        this.quantity = quantity;
+    public GameDisk(long id, String title, String genre, int quantity, String image) {
         this.id = id;
         this.title = title;
         this.genre = genre;
+        this.quantity = quantity;
+        this.image = image;
     }
 
     public long getId() {
-        return this.id;
+        return id;
     }
 
     public void setId(long id) {
@@ -25,7 +27,7 @@ public class GameDisk {
     }
 
     public String getTitle() {
-        return this.title;
+        return title;
     }
 
     public void setTitle(String title) {
@@ -33,7 +35,7 @@ public class GameDisk {
     }
 
     public String getGenre() {
-        return this.genre;
+        return genre;
     }
 
     public void setGenre(String genre) {
@@ -41,10 +43,18 @@ public class GameDisk {
     }
 
     public int getQuantity() {
-        return this.quantity;
+        return quantity;
     }
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }

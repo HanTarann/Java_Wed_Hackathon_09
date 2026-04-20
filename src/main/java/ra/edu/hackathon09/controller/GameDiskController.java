@@ -7,97 +7,136 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import ra.edu.hackathon09.model.dto.GameDiskDTO;
 import ra.edu.hackathon09.model.entity.GameDisk;
 import ra.edu.hackathon09.service.GameDiskService;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
-
-@Controller;
-@RequestMapping("/gamedisk")
+@Controller
+@RequestMapping("/games")
 public class GameDiskController {
+    @Autowired
+    private GameDiskService service;
 
-        @Autowired
-        private GameDiskService service;
+    @Autowired
+    private ServletContext servletContext;
 
-        @Autowired
-        private ServletContext servletContext;
+    @GetMapping
+    public String list(@RequestParam(name = "title", required = false) String title, @RequestParam(name = "genre", required = false) String genre, Model model) {
+        List<GameDisk> games;
 
-        @GetMapping
-        public String list(@RequestParam(value = "keyword", required = false) String keyword,
-                           @RequestParam(value = "position", required = false) String position,
-                           Model model) {
+        if ((title != null && !title.isEmpty()) || (genre != null && !genre.isEmpty())) {
+            games = this.service.search(title, genre);
+        } else {
+            games = this.service.findAll();
+        }
 
-            List<GameDisk> members;
+        model.addAttribute("games", games);
+        model.addAttribute("title", title);
+        model.addAttribute("genre", genre);
 
-            if ((keyword != null && !keyword.isEmpty()) ||
-                    (position != null && !position.isEmpty())) {
+        return "gamedisk-list";
+    }
 
-                members = this.service.search(keyword, position);
-            } else {
-                members = this.service.findAll();
+    @GetMapping("/create")
+    public String create(Model model) {
+        model.addAttribute("gameDTO", new GameDiskDTO());
+        return "gamedisk-form";
+    }
+
+    @PostMapping("/save")
+    public String save(@Valid @ModelAttribute("gameDTO") GameDiskDTO dto, BindingResult result) {
+        if (result.hasErrors()) {
+            return "gamedisk-form";
+        }
+        GameDisk game = new GameDisk();
+
+        game.setTitle(dto.getTitle());
+        game.setGenre(dto.getGenre());
+        game.setQuantity(dto.getQuantity());
+
+        MultipartFile file = dto.getCoverImage();
+
+        if (file != null && !file.isEmpty()) {
+            String path = servletContext.getRealPath("/uploads");
+            File folder = new File(path);
+            if (!folder.exists()) folder.mkdirs();
+
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+            try {
+                file.transferTo(new File(path + File.separator + fileName));
+                game.setImage(fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }
+        service.save(game);
+        return "redirect:/games";
+    }
 
-            model.addAttribute("members", members);
-            model.addAttribute("keyword", keyword);
-            model.addAttribute("position", position);
+    @GetMapping("/edit/{id}")
+    public String edit(@PathVariable("id") long id, Model model) {
+        GameDisk game = service.findById(id);
 
-            return "gamedisk-list";
+        if (game == null) {
+            return "redirect:/games";
         }
 
-        @GetMapping("/create")
-        public String createForm(Model model) {
-            model.addAttribute("memberDTO", new GameDiskDTO());
-            return "member-form";
-        }
+        GameDiskDTO dto = new GameDiskDTO();
+        dto.setId(game.getId());
+        dto.setTitle(game.getTitle());
+        dto.setGenre(game.getGenre());
+        dto.setQuantity(game.getQuantity());
 
-        @PostMapping("/save")
-        public String save(@Valid @ModelAttribute("memberDTO") GameDiskDTO dto, BindingResult result) {
-            if (result.hasErrors()) {
-                return "member-form";
-            }
+        model.addAttribute("gameDTO", dto);
+        return "gamedisk-form";
+    }
 
-            GameDisk gameDisk = new GameDisk();
-
-            gameDisk.setTitle(dto.getTitle());
-            gameDisk.setGenre(dto.getGenre());
-            gameDisk.setQuantity(dto.getQuantity());
-
-            return "redirect:/gamedisk";
-        }
-
-        @GetMapping("/edit/{id}")
-        public String edit(@PathVariable("id") Long id, Model model) {
-
-            GameDisk gameDisk = this.service.findById(id);
-
-            GameDiskDTO dto = new GameDiskDTO();
-
-            dto.setId(gameDisk.getId());
-            dto.setTitle(gameDisk.getTitle());
-            dto.setQuantity(gameDisk.getQuantity());;
-
-            model.addAttribute("gamediskDTO", dto);
+    @PostMapping("/update")
+    public String update(@Valid @ModelAttribute("gameDTO") GameDiskDTO dto, BindingResult result) {
+        if (result.hasErrors()) {
             return "gamedisk-form";
         }
 
-        @PostMapping("/update")
-        public String update(@Valid @ModelAttribute("memberDTO") GameDiskDTO dto, BindingResult result) {
+        GameDisk game = service.findById(dto.getId());
 
-            if (result.hasErrors()) {
-                return "member-form";
+        if (game == null) {
+            return "redirect:/games";
+        }
+
+        game.setTitle(dto.getTitle());
+        game.setGenre(dto.getGenre());
+        game.setQuantity(dto.getQuantity());
+
+        MultipartFile file = dto.getCoverImage();
+
+        if (file != null && !file.isEmpty()) {
+            String path = servletContext.getRealPath("/uploads");
+            File folder = new File(path);
+            if (!folder.exists()) folder.mkdirs();
+
+            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+
+            try {
+                file.transferTo(new File(path + File.separator + fileName));
+                game.setImage(fileName);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-            GameDisk gameDisk = this.service.findById(dto.getId());
-
-            return "redirect:/gamedisk";
         }
+        service.update(game);
+        return "redirect:/games";
+    }
 
-        @GetMapping("/delete/{id}")
-        public String delete(@PathVariable("id") Long id) {
-            this.service.delete(id);
-            return "redirect:/gamedisk";
-        }
+    @GetMapping("/delete/{id}")
+    public String delete(@PathVariable("id") long id) {
+        service.delete(id);
+        return "redirect:/games";
     }
 }
